@@ -405,13 +405,17 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
                 cerror();
             case '*':
                 if (lastep==0 || *lastep==CBRA || *lastep==CKET) {
-                    goto defchar;
+                    *ep++ = CCHR;
+                    *ep++ = c;
+                    continue;
                 }
                 *lastep |= STAR;
                 continue;
             case '$':
                 if ((peekc=getchr()) != eof && peekc!='\n') {
-                    goto defchar;
+                    *ep++ = CCHR;
+                    *ep++ = c;
+                    continue;
             }
                 *ep++ = CDOL;
                 continue;
@@ -449,17 +453,11 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
                 } while ((c = getchr()) != ']');
                 lastep[1] = cclcnt;
                 continue;
-            defchar:
             default:
                 *ep++ = CCHR;
                 *ep++ = c;
         }
     }
-}
-
-void defchar(int c, char *ep) {
-    *ep++ = CCHR;
-    *ep++ = c;
 }
 
 void cerror(void) {
