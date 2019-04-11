@@ -49,9 +49,9 @@ int bp = 0;
 void copyclargs(const char* fname, const char* sstring);
 int grabchar(void);
 void openfile(void);
-void checkfile(char* fname);
 void search_file(const char* filename, const char* searchfor);
 void process_dir(const char* dir, const char* searchfor, void (*fp)(const char*, const char*));
-void drawline(void);
+int star(char *lp, char *ep, char *curlp);
+void cerror(void);
 
 #endif /* grep_h */
