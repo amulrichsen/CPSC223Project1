@@ -267,27 +267,29 @@ int advance(char *lp, char *ep) {  char *curlp;  int i;
             case CDOT|STAR:
                 curlp = lp;
                 while (*lp++) { }
-                goto star;
+                return(star(lp, ep, curlp));
             case CCHR|STAR:
                 curlp = lp;
                 while (*lp++ == *ep) { }
                 ++ep;
-                goto star;
+                return(star(lp, ep, curlp));
             case CCL|STAR:
             case NCCL|STAR:
                 curlp = lp;
                 while (cclass(ep, *lp++, ep[-1] == (CCL|STAR))) { }
                 ep += *ep;
-                goto star;
-            star:
-                do {
-                    lp--;
-                    if (advance(lp, ep)) { return(1); }
-                } while (lp > curlp);
-                return(0);
+                return(star(lp, ep, curlp));
             default: error(Q);
         }
     }
+}
+
+int star(char *lp, char *ep, char *curlp) {
+    do {
+        lp--;
+        if (advance(lp, ep)) { return(1); }
+    } while (lp > curlp);
+    return(0);
 }
 
 int append(int (*f)(void), unsigned int *a) {  unsigned int *a1, *a2, *rdot;  int nline, tl;  nline = 0;  dot = a;
@@ -353,7 +355,7 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
     
     for (;;) {
         if (ep >= &expbuf[ESIZE]) {
-            goto cerror;
+            cerror();
         }
         c = getchr();
         if (c == '\0' || c == '\n' || c == -1) {
@@ -362,7 +364,7 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
         }
         if (c==eof) {
             if (bracketp != bracket) {
-                goto cerror;
+                cerror();
             }
             *ep++ = CEOF;
             return;
@@ -372,7 +374,7 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
             case '\\':
                 if ((c = getchr())=='(') {
                     if (nbra >= NBRA) {
-                        goto cerror;
+                        cerror();
                     }
                     *bracketp++ = nbra;
                     *ep++ = CBRA;
@@ -381,7 +383,7 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
                 }
                 if (c == ')') {
                     if (bracketp <= bracket) {
-                        goto cerror;
+                        cerror();
                     }
                     *ep++ = CKET;
                     *ep++ = *--bracketp;
@@ -393,14 +395,14 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
                     continue;
                 }
                 *ep++ = CCHR;
-                if (c=='\n') { goto cerror; }
+                if (c=='\n') { cerror(); }
                 *ep++ = c;
                 continue;
             case '.':
                 *ep++ = CDOT;
                 continue;
             case '\n':
-                goto cerror;
+                cerror();
             case '*':
                 if (lastep==0 || *lastep==CBRA || *lastep==CKET) {
                     goto defchar;
@@ -409,7 +411,7 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
                 continue;
             case '$':
                 if ((peekc=getchr()) != eof && peekc!='\n') {
-                goto defchar;
+                    goto defchar;
             }
                 *ep++ = CDOL;
                 continue;
@@ -423,7 +425,7 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
                 }
                 do {
                     if (c=='\n') {
-                        goto cerror;
+                        cerror();
                     }  if (c=='-' && ep[-1]!=0) {
                         if ((c=getchr())==']') {
                             *ep++ = '-';
@@ -435,14 +437,14 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
                             ep++;
                             cclcnt++;
                             if (ep >= &expbuf[ESIZE]) {
-                                goto cerror;
+                                cerror();
                             }
                         }
                     }
                     *ep++ = c;
                     cclcnt++;
                     if (ep >= &expbuf[ESIZE]) {
-                        goto cerror;
+                        cerror();
                     }
                 } while ((c = getchr()) != ']');
                 lastep[1] = cclcnt;
@@ -453,7 +455,14 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
                 *ep++ = c;
         }
     }
-cerror:
+}
+
+void defchar(int c, char *ep) {
+    *ep++ = CCHR;
+    *ep++ = c;
+}
+
+void cerror(void) {
     expbuf[0] = 0;
     nbra = 0;
     error(Q);
@@ -806,6 +815,3 @@ void squeeze(int i) {
         error(Q);
     }
 }
-
-
-
