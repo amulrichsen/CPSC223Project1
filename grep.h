@@ -9,22 +9,34 @@
 #ifndef grep_h
 #define grep_h
 
-const int BLKSIZE = 4096;  const int NBLK = 2047;  const int FNSIZE = 128;  const int LBSIZE = 4096;
-const int ESIZE = 256; const int GBSIZE = 256;  const int NBRA = 5;  const int KSIZE = 9;  const int CBRA = 1;
-const int CCHR = 2;  const int CDOT = 4;  const int CCL = 6;  const int NCCL = 8;  const int CDOL = 10;
-const int CEOF = 11;  const int CKET = 12;  const int CBACK = 14;  const int CCIRC = 15;  const int STAR = 01;
-const int READ = 0;  const int WRITE = 1;  /* const int EOF = -1; */
+extern const int BLKSIZE; extern const int NBLK; extern const int FNSIZE; extern const int LBSIZE;
+extern const int ESIZE; extern const int GBSIZE; extern const int NBRA; extern const int KSIZE; extern const int CBRA;
+extern const int CCHR; extern const int CDOT;  extern const int CCL;  extern const int NCCL;  extern const int CDOL;
+extern const int CEOF;  extern const int CKET;  extern const int CBACK;  extern const int CCIRC;  extern const int STAR;
+extern const int READ;  extern const int WRITE;  /* const int EOF = -1; */
 
-int  peekc, lastc, given, ninbuf, io, pflag;
-int  vflag  = 1, oflag, listf, listn, col, tfile  = -1, tline, iblock  = -1, oblock  = -1, ichanged, nleft;
-int  names[26], anymarks, nbra, subnewa, subolda, fchange, wrapp, bpagesize = 20;
-unsigned nlall = 128;  unsigned int  *addr1, *addr2, *dot, *dol, *zero;
+extern int  vflag; extern int tfile; extern int iblock; extern int oblock; extern int  names[26]; extern int bpagesize;
+extern unsigned nlall; extern char  *linp; extern char ssbuf[]; extern char inputbuf[];
 
-long  count;
-char  Q[] = "", T[] = "TMP", savedfile[FNSIZE], file[FNSIZE], linebuf[LBSIZE], rhsbuf[LBSIZE/2], expbuf[ESIZE+4];
-char  genbuf[LBSIZE], *nextip, *linebp, *globp, *mktemp(char *), tmpXXXXX[50] = "/tmp/eXXXXX";
-char  *tfname, *loc1, *loc2, ibuff[BLKSIZE], obuff[BLKSIZE], WRERR[]  = "WRITE ERROR", *braslist[NBRA], *braelist[NBRA];
-char  line[70];  char  *linp  = line;
+extern char  Q[]; extern char T[]; extern char savedfile[]; extern char file[];
+extern char linebuf[]; extern char rhsbuf[]; extern char expbuf[]; extern char  genbuf[]; extern char tmpXXXXX[];
+extern char ibuff[]; extern char obuff[]; extern char WRERR[]; extern char *braslist[]; extern char *braelist[];
+
+typedef void  (*SIG_TYP)(int);
+extern SIG_TYP  oldhup, oldquit;
+
+extern char grepbuf[];
+extern jmp_buf  savej;
+extern int bp;
+
+extern int peekc, lastc, given, ninbuf, io, pflag;
+extern int oflag, listf, listn, col, tline, ichanged, nleft;
+extern unsigned int  *addr1, *addr2, *dot, *dol, *zero;
+extern int anymarks, nbra, subnewa, subolda, fchange, wrapp;
+extern long  count;
+extern char *nextip, *linebp, *globp, *mktemp(char *);
+extern char  *tfname, *loc1, *loc2;
+extern char line[];
 void commands(void); void add(int i);  unsigned int *address(void);  int advance(char *lp, char *ep);
 int append(int (*f)(void), unsigned int *a);  int backref(int i, char *lp);
 void blkio(int b, char *buf, long (*iofcn)(int, void*, unsigned long));  void callunix(void);
@@ -38,14 +50,7 @@ void onintr(int n);  char *place(char *sp, char *l1, char *l2);  void print(void
 void putd(void);  void putfile(void);  int putline(void);  void puts_(char *sp); void quit(int n);
 void rdelete(unsigned int *ad1, unsigned int *ad2);
 void setwide(void);  void setnoaddr(void);  void squeeze(int);  void substitute(int inglob);
-jmp_buf  savej;
-char grepbuf[GBSIZE];
 void greperror(char);  void grepline(void);
-
-typedef void  (*SIG_TYP)(int);
-SIG_TYP  oldhup, oldquit;
-char ssbuf[ESIZE];
-int bp = 0;
 void copyclargs(const char* fname, const char* sstring);
 int grabchar(void);
 void openfile(void);
